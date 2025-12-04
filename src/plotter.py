@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 from typing import List, Tuple, Optional
-from .data_loader import FormationCycleData
+from data_loader import FormationCycleData
 
 
 class FormationCyclePlotter:

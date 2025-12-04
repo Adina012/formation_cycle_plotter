@@ -2,8 +2,8 @@
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-from .data_loader import FormationCycleData
-from .plotter import FormationCyclePlotter
+from data_loader import FormationCycleData
+from plotter import FormationCyclePlotter
 import os
 
 

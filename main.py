@@ -6,7 +6,8 @@ import os
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from gui import main
+# Import with absolute path after adding to sys.path
+import gui
 
 if __name__ == "__main__":
-    main()
+    gui.main()

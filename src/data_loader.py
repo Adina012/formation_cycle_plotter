@@ -99,19 +99,12 @@ class FormationCycleData:
         current_idx = self._get_col_idx('current')
         current_col = self.df.iloc[:, current_idx]
         
-        print(f"\n=== Debug: get_cycles() ===")
-        print(f"Current column index: {current_idx}")
-        print(f"Current column name: {self.df.columns[current_idx]}")
-        print(f"Current column sample values: {current_col.head(3).tolist()}")
-        print(f"Threshold: {threshold}")
-        
         # Find first non-zero current
         non_zero_mask = current_col.abs() > threshold
         if not non_zero_mask.any():
             raise ValueError(f"No non-zero current in {self.filename}")
         
         first_nonzero = non_zero_mask.idxmax()
-        print(f"First non-zero current at row {first_nonzero}: {current_col.iloc[first_nonzero]}")
         
         # Detect sign changes
         sign_change_indices = [first_nonzero]
@@ -120,14 +113,10 @@ class FormationCycleData:
                 sign_change_indices.append(i + 1)
         sign_change_indices.append(len(self.df) - 1)
         
-        print(f"Sign change indices: {sign_change_indices}")
-        print(f"Total cycles detected: {len(sign_change_indices) - 1}")
-        
         cycles = []
         for i in range(len(sign_change_indices) - 1):
             cycles.append((sign_change_indices[i], sign_change_indices[i + 1]))
         
-        print("=== End get_cycles() debug ===\n")
         return cycles
     
     def get_discharge_charge_cycles(self, threshold: float = 1e-9) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:

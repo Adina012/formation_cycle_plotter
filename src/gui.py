@@ -123,7 +123,14 @@ class FormationCycleGUI:
         self.cycle_entry = tk.Entry(options_frame)
         self.cycle_entry.pack(fill="x", pady=5)
         
-        tk.Label(options_frame, text="Colormap:", bg=light_purple).pack(anchor="w")
+        cycle_help = tk.Label(
+            options_frame,
+            text="Leave empty or type 'all' to plot all cycles",
+            font=("Arial", 8),
+            fg="#7D5F91",
+            bg=light_purple
+        )
+        cycle_help.pack(anchor="w")
         self.colormap_var = tk.StringVar(value="viridis")
         colormap_combo = ttk.Combobox(
             options_frame,

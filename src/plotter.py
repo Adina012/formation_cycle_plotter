@@ -73,11 +73,16 @@ class FormationCyclePlotter:
         if not self.fig:
             self.create_figure()
         
+        # Map column numbers to column names
+        col_names = {1: 'time', 2: 'potential', 3: 'capacity', 4: 'current'}
+        x_col_name = col_names[x_col]
+        y_col_name = col_names[y_col]
+        
         cycles = data.get_cycles()
         
         for cycle_count, (start_idx, end_idx) in enumerate(cycles):
-            x_data = data.get_column_data(x_col - 1, (start_idx, end_idx))
-            y_data = data.get_column_data(y_col - 1, (start_idx, end_idx))
+            x_data = data.get_column_data(x_col_name, (start_idx, end_idx))
+            y_data = data.get_column_data(y_col_name, (start_idx, end_idx))
             
             # Process x-axis
             if x_col == 1:  # Time to hours
@@ -111,6 +116,11 @@ class FormationCyclePlotter:
         if not self.fig:
             self.create_figure()
         
+        # Map column numbers to column names
+        col_names = {1: 'time', 2: 'potential', 3: 'capacity', 4: 'current'}
+        x_col_name = col_names[x_col]
+        y_col_name = col_names[y_col]
+        
         colors = plt.cm.get_cmap(colormap)(np.linspace(0, 1, len(data_list)))
         
         for file_idx, data in enumerate(data_list):
@@ -123,8 +133,8 @@ class FormationCyclePlotter:
                 cycle_range = cycles
             
             for cycle_count, (start_idx, end_idx) in enumerate(cycle_range):
-                x_data = data.get_column_data(x_col - 1, (start_idx, end_idx))
-                y_data = data.get_column_data(y_col - 1, (start_idx, end_idx))
+                x_data = data.get_column_data(x_col_name, (start_idx, end_idx))
+                y_data = data.get_column_data(y_col_name, (start_idx, end_idx))
                 
                 # Process x-axis
                 if x_col == 1:  # Time to hours

@@ -154,6 +154,15 @@ class FormationCycleGUI:
         if self.selected_files:
             file_str = ", ".join([os.path.basename(f) for f in self.selected_files])
             self.file_label.config(text=f"Selected: {file_str}")
+            
+            # Try to detect columns and show mapping
+            try:
+                data = FormationCycleData(self.selected_files[0])
+                col_map = data.get_available_columns()
+                mapping_str = "Detected columns: " + ", ".join([f"{orig}→{mapped}" for orig, mapped in col_map.items()])
+                self.file_label.config(text=f"Selected: {file_str}\n{mapping_str}")
+            except Exception as e:
+                self.file_label.config(text=f"Selected: {file_str}\nWarning: {str(e)}")
     
     def _generate_plot(self):
         """Generate and display the plot."""

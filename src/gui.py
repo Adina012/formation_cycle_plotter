@@ -125,7 +125,7 @@ class FormationCycleGUI:
         
         cycle_help = tk.Label(
             options_frame,
-            text="Leave empty or type 'all' to plot all cycles",
+            text="Examples: 'discharge 3', 'charge 2', '5', 'all', or leave empty",
             font=("Arial", 8),
             fg="#7D5F91",
             bg=light_purple
@@ -218,9 +218,9 @@ class FormationCycleGUI:
             if self.mass_entry.get():
                 active_mass = float(self.mass_entry.get())
             
-            cycle_num = None
+            cycle_input = None
             if self.cycle_entry.get():
-                cycle_num = int(self.cycle_entry.get())
+                cycle_input = self.cycle_entry.get().strip()
             
             # Create plot
             self.plotter.create_figure()
@@ -231,7 +231,7 @@ class FormationCycleGUI:
                     data_list[0],
                     x_col,
                     y_col,
-                    cycle_num=cycle_num,
+                    cycle_input=cycle_input,
                     active_mass=active_mass
                 )
             else:
@@ -240,7 +240,7 @@ class FormationCycleGUI:
                     data_list,
                     x_col,
                     y_col,
-                    cycle_num=cycle_num,
+                    cycle_input=cycle_input,
                     active_mass=active_mass,
                     colormap=colormap
                 )

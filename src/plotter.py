@@ -50,12 +50,80 @@ class FormationCyclePlotter:
         self.ax.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
         self.ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
     
+    @staticmethod
+    def _parse_cycle_input(cycle_input: Optional[str], data: FormationCycleData) -> Optional[List[int]]:
+        """
+        Parse user cycle input into a list of cycle indices.
+        
+        Supports formats:
+        - 'discharge 3' -> discharge cycle #3
+        - 'charge 2' -> charge cycle #2
+        - '5' -> cycle #5 (all cycles)
+        - 'all' or None -> all cycles
+        
+        Args:
+            cycle_input: User input string
+            data: FormationCycleData object to get discharge/charge info
+            
+        Returns:
+            List of cycle indices to plot (1-indexed), or None for all cycles
+        """
+        if not cycle_input or cycle_input.lower() == 'all':
+            return None
+        
+        cycle_input = cycle_input.lower().strip()
+        
+        # Check for "discharge X" or "charge X" format
+        if cycle_input.startswith('discharge'):
+            parts = cycle_input.split()
+            if len(parts) == 2:
+                try:
+                    discharge_num = int(parts[1])
+                    discharge_cycles, _ = data.get_discharge_charge_cycles()
+                    if 1 <= discharge_num <= len(discharge_cycles):
+                        # Find which cycle index this corresponds to
+                        target_range = discharge_cycles[discharge_num - 1]
+                        all_cycles = data.get_cycles()
+                        for idx, cycle_range in enumerate(all_cycles):
+                            if cycle_range == target_range:
+                                return [idx + 1]  # Return 1-indexed
+                    else:
+                        raise ValueError(f"Discharge cycle {discharge_num} not found. Available: 1-{len(discharge_cycles)}")
+                except (ValueError, IndexError) as e:
+                    raise ValueError(f"Invalid discharge format: {cycle_input}. Use 'discharge X' where X is 1, 2, 3, etc.")
+        
+        elif cycle_input.startswith('charge'):
+            parts = cycle_input.split()
+            if len(parts) == 2:
+                try:
+                    charge_num = int(parts[1])
+                    _, charge_cycles = data.get_discharge_charge_cycles()
+                    if 1 <= charge_num <= len(charge_cycles):
+                        # Find which cycle index this corresponds to
+                        target_range = charge_cycles[charge_num - 1]
+                        all_cycles = data.get_cycles()
+                        for idx, cycle_range in enumerate(all_cycles):
+                            if cycle_range == target_range:
+                                return [idx + 1]  # Return 1-indexed
+                    else:
+                        raise ValueError(f"Charge cycle {charge_num} not found. Available: 1-{len(charge_cycles)}")
+                except (ValueError, IndexError) as e:
+                    raise ValueError(f"Invalid charge format: {cycle_input}. Use 'charge X' where X is 1, 2, 3, etc.")
+        
+        else:
+            # Try to parse as integer (cycle number)
+            try:
+                cycle_num = int(cycle_input)
+                return [cycle_num]
+            except ValueError:
+                raise ValueError(f"Invalid cycle format: {cycle_input}. Use 'discharge X', 'charge X', or a cycle number.")
+    
     def plot_single_file(
         self,
         data: FormationCycleData,
         x_col: int,
         y_col: int,
-        cycle_num: Optional[int] = None,
+        cycle_input: Optional[str] = None,
         active_mass: Optional[float] = None,
         color: str = 'black'
     ):
@@ -66,7 +134,7 @@ class FormationCyclePlotter:
             data: FormationCycleData object
             x_col: X-axis column number (1-4)
             y_col: Y-axis column number (1-4)
-            cycle_num: Specific cycle to plot (None = all cycles)
+            cycle_input: Cycle specification ('discharge 3', 'charge 2', '5', 'all', or None)
             active_mass: Active mass for capacity normalization
             color: Line color
         """
@@ -80,7 +148,18 @@ class FormationCyclePlotter:
         
         cycles = data.get_cycles()
         
-        for cycle_count, (start_idx, end_idx) in enumerate(cycles):
+        # Parse cycle input to determine which cycles to plot
+        cycle_indices = self._parse_cycle_input(cycle_input, data)
+        
+        if cycle_indices is None:
+            # Plot all cycles
+            cycle_range_list = list(range(len(cycles)))
+        else:
+            # Plot specified cycles (convert to 0-indexed)
+            cycle_range_list = [idx - 1 for idx in cycle_indices if 1 <= idx <= len(cycles)]
+        
+        for cycle_idx in cycle_range_list:
+            start_idx, end_idx = cycles[cycle_idx]
             x_data = data.get_column_data(x_col_name, (start_idx, end_idx))
             y_data = data.get_column_data(y_col_name, (start_idx, end_idx))
             
@@ -90,7 +169,7 @@ class FormationCyclePlotter:
             elif x_col == 3 and active_mass:  # Normalize capacity by mass
                 x_data = x_data / active_mass
             
-            label = data.filename if cycle_count == 0 else ""
+            label = data.filename if cycle_idx == cycle_range_list[0] else ""
             self.ax.plot(x_data, y_data, color=color, label=label)
     
     def plot_multi_file(
@@ -98,7 +177,7 @@ class FormationCyclePlotter:
         data_list: List[FormationCycleData],
         x_col: int,
         y_col: int,
-        cycle_num: Optional[int] = None,
+        cycle_input: Optional[str] = None,
         active_mass: Optional[float] = None,
         colormap: str = 'viridis'
     ):
@@ -109,7 +188,7 @@ class FormationCyclePlotter:
             data_list: List of FormationCycleData objects
             x_col: X-axis column number (1-4)
             y_col: Y-axis column number (1-4)
-            cycle_num: Specific cycle to plot (None = all cycles)
+            cycle_input: Cycle specification ('discharge 3', 'charge 2', '5', 'all', or None)
             active_mass: Active mass for capacity normalization
             colormap: Matplotlib colormap name
         """
@@ -126,13 +205,18 @@ class FormationCyclePlotter:
         for file_idx, data in enumerate(data_list):
             cycles = data.get_cycles()
             
-            # Plot specific cycle or all
-            if cycle_num and 1 <= cycle_num <= len(cycles):
-                cycle_range = [cycles[cycle_num - 1]]
-            else:
-                cycle_range = cycles
+            # Parse cycle input to determine which cycles to plot
+            cycle_indices = self._parse_cycle_input(cycle_input, data)
             
-            for cycle_count, (start_idx, end_idx) in enumerate(cycle_range):
+            if cycle_indices is None:
+                # Plot all cycles
+                cycle_range_list = list(range(len(cycles)))
+            else:
+                # Plot specified cycles (convert to 0-indexed)
+                cycle_range_list = [idx - 1 for idx in cycle_indices if 1 <= idx <= len(cycles)]
+            
+            for cycle_count, cycle_idx in enumerate(cycle_range_list):
+                start_idx, end_idx = cycles[cycle_idx]
                 x_data = data.get_column_data(x_col_name, (start_idx, end_idx))
                 y_data = data.get_column_data(y_col_name, (start_idx, end_idx))
                 

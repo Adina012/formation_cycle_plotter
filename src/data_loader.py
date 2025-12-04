@@ -119,6 +119,32 @@ class FormationCycleData:
         
         return cycles
     
+    def get_discharge_charge_cycles(self, threshold: float = 1e-6) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
+        """
+        Detect and separate discharge and charge cycles.
+        
+        Args:
+            threshold: Threshold for detecting non-zero current
+            
+        Returns:
+            Tuple of (discharge_cycles, charge_cycles), each is a list of (start_idx, end_idx) tuples
+        """
+        cycles = self.get_cycles(threshold)
+        current_idx = self._get_col_idx('current')
+        
+        discharge_cycles = []
+        charge_cycles = []
+        
+        for start_idx, end_idx in cycles:
+            # Determine if discharge (negative) or charge (positive)
+            avg_current = self.df.iloc[start_idx:end_idx, current_idx].mean()
+            if avg_current < 0:
+                discharge_cycles.append((start_idx, end_idx))
+            else:
+                charge_cycles.append((start_idx, end_idx))
+        
+        return discharge_cycles, charge_cycles
+    
     def trim_to_first_cycle(self):
         """Trim data to start from first non-zero current."""
         current_idx = self._get_col_idx('current')

@@ -192,7 +192,12 @@ class FormationCycleGUI:
                 data = FormationCycleData(self.selected_files[0])
                 col_map = data.get_available_columns()
                 mapping_str = "Detected columns: " + ", ".join([f"{orig}→{mapped}" for orig, mapped in col_map.items()])
-                self.file_label.config(text=f"Selected: {file_str}\n{mapping_str}")
+                
+                # Also show cycle information
+                discharge_cycles, charge_cycles = data.get_discharge_charge_cycles()
+                cycle_info = f"\nCycles: {len(discharge_cycles)} discharge, {len(charge_cycles)} charge ({len(discharge_cycles) + len(charge_cycles)} total)"
+                
+                self.file_label.config(text=f"Selected: {file_str}\n{mapping_str}{cycle_info}")
             except Exception as e:
                 self.file_label.config(text=f"Selected: {file_str}\nWarning: {str(e)}")
     

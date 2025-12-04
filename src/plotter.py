@@ -157,6 +157,8 @@ class FormationCyclePlotter:
         else:
             # Plot specified cycles (convert to 0-indexed)
             cycle_range_list = [idx - 1 for idx in cycle_indices if 1 <= idx <= len(cycles)]
+            if not cycle_range_list:
+                raise ValueError(f"Requested cycle(s) {cycle_indices} but only {len(cycles)} cycles available")
         
         for cycle_idx in cycle_range_list:
             start_idx, end_idx = cycles[cycle_idx]
@@ -214,6 +216,8 @@ class FormationCyclePlotter:
             else:
                 # Plot specified cycles (convert to 0-indexed)
                 cycle_range_list = [idx - 1 for idx in cycle_indices if 1 <= idx <= len(cycles)]
+                if not cycle_range_list:
+                    raise ValueError(f"Requested cycle(s) {cycle_indices} but only {len(cycles)} cycles available in {data.filename}")
             
             for cycle_count, cycle_idx in enumerate(cycle_range_list):
                 start_idx, end_idx = cycles[cycle_idx]

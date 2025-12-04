@@ -190,6 +190,10 @@ class FormationCycleGUI:
             # Try to detect columns and show mapping
             try:
                 data = FormationCycleData(self.selected_files[0])
+                # Apply trimming and normalization BEFORE cycle detection
+                data.trim_to_first_cycle()
+                data.normalize_time()
+                
                 col_map = data.get_available_columns()
                 mapping_str = "Detected columns: " + ", ".join([f"{orig}→{mapped}" for orig, mapped in col_map.items()])
                 

@@ -86,7 +86,7 @@ class FormationCycleData:
             raise ValueError(f"Column '{col_name}' not found or not mapped")
         return self.column_mapping[col_name]
     
-    def get_cycles(self, threshold: float = 1e-6) -> List[Tuple[int, int]]:
+    def get_cycles(self, threshold: float = 1e-9) -> List[Tuple[int, int]]:
         """
         Detect cycle boundaries based on current sign changes.
         
@@ -99,12 +99,19 @@ class FormationCycleData:
         current_idx = self._get_col_idx('current')
         current_col = self.df.iloc[:, current_idx]
         
+        print(f"\n=== Debug: get_cycles() ===")
+        print(f"Current column index: {current_idx}")
+        print(f"Current column name: {self.df.columns[current_idx]}")
+        print(f"Current column sample values: {current_col.head(3).tolist()}")
+        print(f"Threshold: {threshold}")
+        
         # Find first non-zero current
         non_zero_mask = current_col.abs() > threshold
         if not non_zero_mask.any():
             raise ValueError(f"No non-zero current in {self.filename}")
         
         first_nonzero = non_zero_mask.idxmax()
+        print(f"First non-zero current at row {first_nonzero}: {current_col.iloc[first_nonzero]}")
         
         # Detect sign changes
         sign_change_indices = [first_nonzero]
@@ -113,13 +120,17 @@ class FormationCycleData:
                 sign_change_indices.append(i + 1)
         sign_change_indices.append(len(self.df) - 1)
         
+        print(f"Sign change indices: {sign_change_indices}")
+        print(f"Total cycles detected: {len(sign_change_indices) - 1}")
+        
         cycles = []
         for i in range(len(sign_change_indices) - 1):
             cycles.append((sign_change_indices[i], sign_change_indices[i + 1]))
         
+        print("=== End get_cycles() debug ===\n")
         return cycles
     
-    def get_discharge_charge_cycles(self, threshold: float = 1e-6) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
+    def get_discharge_charge_cycles(self, threshold: float = 1e-9) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
         """
         Detect and separate discharge and charge cycles.
         
@@ -135,27 +146,48 @@ class FormationCycleData:
         discharge_cycles = []
         charge_cycles = []
         
-        for start_idx, end_idx in cycles:
+        print(f"\n=== Debug: Cycle Detection for {self.filename} ===")
+        print(f"Total cycles detected by sign changes: {len(cycles)}")
+        print(f"Current column index: {current_idx}")
+        
+        for cycle_num, (start_idx, end_idx) in enumerate(cycles, 1):
             # Get non-zero current values in this cycle
             cycle_current = self.df.iloc[start_idx:end_idx, current_idx]
             non_zero_mask = cycle_current.abs() > threshold
             
+            print(f"\nCycle {cycle_num}: rows [{start_idx}:{end_idx}]")
+            print(f"  Current range: [{cycle_current.min():.6e}, {cycle_current.max():.6e}]")
+            print(f"  Non-zero count: {non_zero_mask.sum()}/{len(cycle_current)}")
+            
             if non_zero_mask.any():
                 # Use the sign of the first non-zero current value
                 first_nonzero_idx = non_zero_mask.idxmax()
-                current_sign = np.sign(self.df.iloc[first_nonzero_idx, current_idx])
+                first_nonzero_val = self.df.iloc[first_nonzero_idx, current_idx]
+                current_sign = np.sign(first_nonzero_val)
+                
+                print(f"  First non-zero current: {first_nonzero_val:.6e} at row {first_nonzero_idx}")
+                print(f"  Sign: {current_sign}")
                 
                 if current_sign < 0:
                     discharge_cycles.append((start_idx, end_idx))
+                    print(f"  → DISCHARGE")
                 else:
                     charge_cycles.append((start_idx, end_idx))
+                    print(f"  → CHARGE")
             else:
                 # If no non-zero current, try using median
                 median_current = cycle_current.median()
+                print(f"  No non-zero values, using median: {median_current:.6e}")
+                
                 if median_current < 0:
                     discharge_cycles.append((start_idx, end_idx))
+                    print(f"  → DISCHARGE (median)")
                 else:
                     charge_cycles.append((start_idx, end_idx))
+                    print(f"  → CHARGE (median)")
+        
+        print(f"\nFinal result: {len(discharge_cycles)} discharge, {len(charge_cycles)} charge")
+        print("=== End Debug ===\n")
         
         return discharge_cycles, charge_cycles
     
@@ -163,7 +195,7 @@ class FormationCycleData:
         """Trim data to start from first non-zero current."""
         current_idx = self._get_col_idx('current')
         current_col = self.df.iloc[:, current_idx]
-        non_zero_mask = current_col.abs() > 1e-6
+        non_zero_mask = current_col.abs() > 1e-9
         if non_zero_mask.any():
             first_nonzero = non_zero_mask.idxmax()
             self.df = self.df.loc[first_nonzero:].reset_index(drop=True)

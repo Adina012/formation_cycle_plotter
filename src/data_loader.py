@@ -136,12 +136,26 @@ class FormationCycleData:
         charge_cycles = []
         
         for start_idx, end_idx in cycles:
-            # Determine if discharge (negative) or charge (positive)
-            avg_current = self.df.iloc[start_idx:end_idx, current_idx].mean()
-            if avg_current < 0:
-                discharge_cycles.append((start_idx, end_idx))
+            # Get non-zero current values in this cycle
+            cycle_current = self.df.iloc[start_idx:end_idx, current_idx]
+            non_zero_mask = cycle_current.abs() > threshold
+            
+            if non_zero_mask.any():
+                # Use the sign of the first non-zero current value
+                first_nonzero_idx = non_zero_mask.idxmax()
+                current_sign = np.sign(self.df.iloc[first_nonzero_idx, current_idx])
+                
+                if current_sign < 0:
+                    discharge_cycles.append((start_idx, end_idx))
+                else:
+                    charge_cycles.append((start_idx, end_idx))
             else:
-                charge_cycles.append((start_idx, end_idx))
+                # If no non-zero current, try using median
+                median_current = cycle_current.median()
+                if median_current < 0:
+                    discharge_cycles.append((start_idx, end_idx))
+                else:
+                    charge_cycles.append((start_idx, end_idx))
         
         return discharge_cycles, charge_cycles
     

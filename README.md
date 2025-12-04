@@ -10,10 +10,11 @@ A unified, professional-grade Python application for plotting and analyzing form
 - **Cycle Analysis**: Analyze specific lithiation/delithiation cycles
 
 ### Data Processing
-- Automatic cycle detection based on current sign changes
+- **Automatic cycle detection** based on current direction changes (not arbitrary column numbering)
 - Time normalization (starts at t=0)
 - Capacity normalization by active mass
 - Threshold-based filtering for non-zero current detection
+- **Auto-detects column names** (supports various formats: time/s, Ewe/V, I/mA, Q charge, etc.)
 - Robust error handling for malformed files
 
 ### Visualization
@@ -74,6 +75,7 @@ This launches the GUI application where you can:
 4. **Set Options**: 
    - Active mass (g) for capacity normalization
    - Specific cycle number (for cycle analysis)
+     - Leave empty or type **`all`** to plot all cycles
    - Colormap preference (for multi-file plots)
 5. **Generate Plot**: Click "Generate Plot" to create and display the visualization
 

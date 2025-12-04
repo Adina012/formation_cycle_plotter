@@ -16,6 +16,10 @@ class FormationCycleGUI:
         self.root.title("Formation Cycle Plotter")
         self.root.geometry("500x600")
         
+        # Set light purple background color
+        light_purple = "#E6D7F0"
+        self.root.configure(bg=light_purple)
+        
         self.selected_files = []
         self.plotter = FormationCyclePlotter()
         
@@ -23,16 +27,19 @@ class FormationCycleGUI:
     
     def _create_widgets(self):
         """Create and layout GUI widgets."""
+        light_purple = "#E6D7F0"
+        
         # Title
         title_label = tk.Label(
             self.root,
             text="Formation Cycle Plotter",
-            font=("Arial", 16, "bold")
+            font=("Arial", 16, "bold"),
+            bg=light_purple
         )
         title_label.pack(pady=10)
         
         # Mode selection
-        mode_frame = tk.LabelFrame(self.root, text="Mode", padx=10, pady=10)
+        mode_frame = tk.LabelFrame(self.root, text="Mode", padx=10, pady=10, bg=light_purple)
         mode_frame.pack(fill="x", padx=10, pady=5)
         
         self.mode_var = tk.StringVar(value="single")
@@ -41,42 +48,47 @@ class FormationCycleGUI:
             text="Single Plot",
             variable=self.mode_var,
             value="single",
-            command=self._update_ui
+            command=self._update_ui,
+            bg=light_purple
         ).pack(anchor="w")
         tk.Radiobutton(
             mode_frame,
             text="Multi-File Comparison",
             variable=self.mode_var,
             value="multi",
-            command=self._update_ui
+            command=self._update_ui,
+            bg=light_purple
         ).pack(anchor="w")
         tk.Radiobutton(
             mode_frame,
             text="Cycle Analysis",
             variable=self.mode_var,
             value="cycles",
-            command=self._update_ui
+            command=self._update_ui,
+            bg=light_purple
         ).pack(anchor="w")
         
         # File selection
-        file_frame = tk.LabelFrame(self.root, text="File Selection", padx=10, pady=10)
+        file_frame = tk.LabelFrame(self.root, text="File Selection", padx=10, pady=10, bg=light_purple)
         file_frame.pack(fill="x", padx=10, pady=5)
         
         self.file_button = tk.Button(
             file_frame,
             text="Select File(s)",
-            command=self._select_files
+            command=self._select_files,
+            bg="#D8B8E8",
+            activebackground="#C99DD8"
         )
         self.file_button.pack(fill="x", pady=5)
         
-        self.file_label = tk.Label(file_frame, text="No files selected", wraplength=400)
+        self.file_label = tk.Label(file_frame, text="No files selected", wraplength=400, bg=light_purple)
         self.file_label.pack(anchor="w")
         
         # Axis selection
-        axis_frame = tk.LabelFrame(self.root, text="Axis Selection", padx=10, pady=10)
+        axis_frame = tk.LabelFrame(self.root, text="Axis Selection", padx=10, pady=10, bg=light_purple)
         axis_frame.pack(fill="x", padx=10, pady=5)
         
-        tk.Label(axis_frame, text="X-Axis:").pack(anchor="w")
+        tk.Label(axis_frame, text="X-Axis:", bg=light_purple).pack(anchor="w")
         self.x_axis_var = tk.IntVar(value=1)
         x_options = {"Time (s)": 1, "Potential (V)": 2, "Capacity (mAh)": 3, "Current (mA)": 4}
         for text, value in x_options.items():
@@ -84,32 +96,34 @@ class FormationCycleGUI:
                 axis_frame,
                 text=text,
                 variable=self.x_axis_var,
-                value=value
+                value=value,
+                bg=light_purple
             ).pack(anchor="w")
         
-        tk.Label(axis_frame, text="Y-Axis:").pack(anchor="w", pady=(10, 0))
+        tk.Label(axis_frame, text="Y-Axis:", bg=light_purple).pack(anchor="w", pady=(10, 0))
         self.y_axis_var = tk.IntVar(value=2)
         for text, value in x_options.items():
             tk.Radiobutton(
                 axis_frame,
                 text=text,
                 variable=self.y_axis_var,
-                value=value
+                value=value,
+                bg=light_purple
             ).pack(anchor="w")
         
         # Options
-        options_frame = tk.LabelFrame(self.root, text="Options", padx=10, pady=10)
+        options_frame = tk.LabelFrame(self.root, text="Options", padx=10, pady=10, bg=light_purple)
         options_frame.pack(fill="x", padx=10, pady=5)
         
-        tk.Label(options_frame, text="Active Mass (g):").pack(anchor="w")
+        tk.Label(options_frame, text="Active Mass (g):", bg=light_purple).pack(anchor="w")
         self.mass_entry = tk.Entry(options_frame)
         self.mass_entry.pack(fill="x", pady=5)
         
-        tk.Label(options_frame, text="Cycle Number (for cycle analysis):").pack(anchor="w")
+        tk.Label(options_frame, text="Cycle Number (for cycle analysis):", bg=light_purple).pack(anchor="w")
         self.cycle_entry = tk.Entry(options_frame)
         self.cycle_entry.pack(fill="x", pady=5)
         
-        tk.Label(options_frame, text="Colormap:").pack(anchor="w")
+        tk.Label(options_frame, text="Colormap:", bg=light_purple).pack(anchor="w")
         self.colormap_var = tk.StringVar(value="viridis")
         colormap_combo = ttk.Combobox(
             options_frame,
@@ -124,11 +138,22 @@ class FormationCycleGUI:
             self.root,
             text="Generate Plot",
             command=self._generate_plot,
-            bg="green",
+            bg="#B38FD4",
             fg="white",
-            font=("Arial", 12, "bold")
+            font=("Arial", 12, "bold"),
+            activebackground="#9B70C1"
         )
         self.plot_button.pack(fill="x", padx=10, pady=10)
+        
+        # Tagline at bottom
+        tagline_label = tk.Label(
+            self.root,
+            text="plot",
+            font=("Arial", 9, "italic"),
+            fg="#6B4C7A",
+            bg=light_purple
+        )
+        tagline_label.pack(side="bottom", pady=5)
     
     def _update_ui(self):
         """Update UI based on selected mode."""
